@@ -1,0 +1,4 @@
+requests>=2.28.0
+wechatarticles>=0.7.0
+beautifulsoup4>=4.7.0
+curl_cffi>=0.5.0

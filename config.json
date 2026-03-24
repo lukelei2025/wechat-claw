@@ -1,0 +1,12 @@
+{
+  "targets": [
+    {
+      "nickname": "目标公众号名称"
+    }
+  ],
+  "crawl_settings": {
+    "batch_size": 5,
+    "delay_seconds": 3,
+    "output_dir": "output"
+  }
+}
