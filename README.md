@@ -24,37 +24,30 @@ pip install -r requirements.txt
 
 或者运行时直接指定：`python crawler.py --nickname "公众号名称"`
 
-### 3. 获取凭证（书签一键提取）
+### 3. 安装浏览器内核 (Playwright)
 
-#### 一次性设置：创建书签
-
-在浏览器收藏栏新建书签，名称填 `提取凭证`，URL 填入：
-
-```
-javascript:void(function(){var c=document.cookie;var t=(location.href.match(/token=(\d+)/)||[,'未找到'])[1];var d=document.createElement('div');d.innerHTML='<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center"><div style="background:#fff;padding:24px;border-radius:12px;max-width:600px;width:90%25"><h2 style="margin:0 0 12px">✅ 凭证提取成功</h2><p style="font-size:13px;color:#666">Token: '+t+'</p><textarea id="_wc_out" style="width:100%25;height:200px;font-size:12px;border:1px solid #ddd;border-radius:8px;padding:8px;margin:8px 0" readonly>'+JSON.stringify({cookie:c,token:t})+'</textarea><button onclick="document.getElementById(\'_wc_out\').select();document.execCommand(\'copy\');this.textContent=\'✅ 已复制!\'" style="background:#07c160;color:#fff;border:none;padding:10px 32px;border-radius:8px;font-size:15px;cursor:pointer;width:100%25">📋 一键复制</button><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:1px solid #ddd;padding:8px 24px;border-radius:8px;font-size:13px;cursor:pointer;width:100%25;margin-top:8px">关闭</button></div></div>';document.body.appendChild(d)})()
-```
-
-#### 每次使用
-
-1. 浏览器打开 https://mp.weixin.qq.com → 扫码登录
-2. 点击收藏栏的 **"提取凭证"** 书签
-3. 弹窗中点 **📋 一键复制**
-
-### 4. 运行爬虫
+爬虫使用 Playwright 自动化获取微信后台凭证，因此需要安装 Chromium 内核：
 
 ```bash
-# 交互式：粘贴凭证后自动抓取
-python crawler.py
+playwright install chromium
+```
 
-# 命令行传入凭证
-python crawler.py --credentials '{"cookie":"xxx","token":"xxx"}'
+### 4. 运行爬虫自动获取凭证
 
-# 指定公众号名称
+直接运行爬虫，程序会自动打开 Chromium 浏览器进入微信公众平台，你只需**用手机微信扫码**即可，剩余的提取和保存凭证工作会自动完成。
+
+```bash
+# 本地运行（会自动弹出浏览器窗口让你扫码）
 python crawler.py --nickname "目标公众号"
 
-# 再次运行 (自动使用上次保存的凭证)
-python crawler.py
+# 云服务器运行（无头模式，二维码将以图片 login_qrcode.png 形式保存在当前目录供你查看）
+python crawler.py --nickname "目标公众号" --headless
+
+# 命令行直传凭证（跳过自动登录流程）
+python crawler.py --credentials '{"cookie":"xxx","token":"xxx"}'
 ```
+
+凭证会自动保存在本地 `credentials.json`，下次运行在过期前无需重新扫码。
 
 ### 5. 结果
 

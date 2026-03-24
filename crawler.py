@@ -15,6 +15,8 @@ import sys
 import argparse
 from datetime import datetime
 
+from fetch_content import fetch_all_content
+
 try:
     from wechatarticles import PublicAccountsWeb
 except ImportError:
@@ -50,22 +52,24 @@ def load_credentials(path="credentials.json"):
     return data["cookie"], data["token"]
 
 
-def get_credentials_interactive():
-    """交互式获取凭证: 用户粘贴书签提取的 JSON"""
+def get_credentials_auto(headless=False):
+    """通过 Playwright 自动化获取凭证"""
+    from wechat_login import playwright_login
     print("=" * 50)
-    print("请粘贴从书签提取的凭证 JSON:")
-    print('格式: {"cookie":"...","token":"..."}')
+    print("准备启动浏览器获取微信公众平台登录凭证...")
     print("=" * 50)
 
-    raw = input("> ").strip()
     try:
-        data = json.loads(raw)
-        cookie = data["cookie"]
-        token = data["token"]
+        cookie, token = playwright_login(headless=headless)
+        if not cookie or not token:
+            print("[✗] 获取凭证失败")
+            sys.exit(1)
+            
         save_credentials(cookie, token)
         return cookie, token
-    except (json.JSONDecodeError, KeyError) as e:
-        print(f"[✗] 凭证格式错误: {e}")
+    except Exception as e:
+        print(f"[✗] 启动自动化登录失败: {e}")
+        print("请确保已安装依赖: pip install playwright && playwright install chromium")
         sys.exit(1)
 
 
@@ -212,17 +216,37 @@ def crawl_account(cookie, token, nickname, settings, fakeid=None, max_articles=N
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
-    print(f"\n✅ 抓取完成!")
+    print(f"\n✅ 第一阶段（文章列表）抓取完成!")
     print(f"   公众号: {nickname}")
     print(f"   文章数: {len(all_articles)}")
-    print(f"   保存到: {output_file}")
+    print(f"   基础列表保存到: {output_file}")
 
-    # 打印前 3 篇文章标题作为预览
-    for i, article in enumerate(all_articles[:3]):
-        title = article.get("title", "无标题")
-        link = article.get("link", "")
-        print(f"   [{i+1}] {title}")
-        print(f"       {link[:80]}...")
+    # 5. 自动无缝进入第二阶段：请求文章内容（默认情况下）
+    # 在 settings 中可以允许不请求正文，但通常大家都需要连贯的抓出正文
+    skip_content = settings.get("skip_content", False)
+    if not skip_content and all_articles:
+        results = fetch_all_content(
+            all_articles,
+            max_articles=len(all_articles),
+            delay=settings.get("content_delay_seconds", 2),
+            timeout=20
+        )
+        
+        # 将带正文的结果重新保存为 _content_XXXX.json
+        full_output_file = os.path.join(output_dir, f"{safe_name}_full_{timestamp}.json")
+        output_data = {
+            "account": nickname,
+            "total": len(results),
+            "success": sum(1 for r in results if r.get("content")),
+            "crawled_at": datetime.now().isoformat(),
+            "articles": results,
+        }
+        with open(full_output_file, "w", encoding="utf-8") as f:
+            json.dump(output_data, f, indent=2, ensure_ascii=False)
+            
+        print(f"\n✅ 第二阶段（文章纯文本详情）提取完毕！")
+        print(f"   最终带有正文的数据已保存至: {full_output_file}")
+
 
     return all_articles
 
@@ -277,6 +301,11 @@ def main():
         default=None,
         help="只抓取此日期之后的文章，格式: YYYY-MM-DD（如 2026-01-01）",
     )
+    parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="在无头模式下启动登录浏览器（适合云服务器无界面环境）",
+    )
     args = parser.parse_args()
 
     # 加载配置
@@ -304,7 +333,7 @@ def main():
     else:
         cookie, token = load_credentials()
         if not cookie or not token:
-            cookie, token = get_credentials_interactive()
+            cookie, token = get_credentials_auto(headless=args.headless)
 
     # 解析 since 日期
     since_date = None
