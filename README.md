@@ -34,16 +34,17 @@ playwright install chromium
 
 ### 4. 运行爬虫自动获取凭证
 
-直接运行爬虫，程序会自动打开 Chromium 浏览器进入微信公众平台，你只需**用手机微信扫码**即可，剩余的提取和保存凭证工作会自动完成。
+直接运行爬虫，程序会智能提示你是想自动扫码还是手工输入：
 
 ```bash
-# 本地运行（会自动弹出浏览器窗口让你扫码）
+# 本地运行（按回车键，会自动弹出浏览器窗口让你扫码，全自动）
 python crawler.py --nickname "目标公众号"
 
-# 云服务器运行（无头模式，二维码将以图片 login_qrcode.png 形式保存在当前目录供你查看）
-python crawler.py --nickname "目标公众号" --headless
+# 云服务器运行（因微信会对云服务器 IP 实施风控拦截 headless 登录，推荐在此模式下粘贴手工 JSON）
+# 做法：在本地电脑按 F12 抓取完整 Cookie 和 Token，拼成 JSON，在云端运行此命令后粘贴回车
+python crawler.py --nickname "目标公众号"
 
-# 命令行直传凭证（跳过自动登录流程）
+# 命令行直传凭证（完全静默，适合定时脚本）
 python crawler.py --credentials '{"cookie":"xxx","token":"xxx"}'
 ```
 

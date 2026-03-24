@@ -73,6 +73,29 @@ def get_credentials_auto(headless=False):
         sys.exit(1)
 
 
+def get_credentials_smart(headless=False):
+    """智能获取凭证：支持回车直接启动 Playwright，或者手工粘贴 JSON"""
+    print("=" * 50)
+    print("你想如何提供登录凭证？")
+    print("1. [按回车键] -> 自动启动浏览器扫码获取 (Playwright 推荐本地使用)")
+    print("2. [粘贴 JSON] -> 贴入手工抓包获取的 {\"cookie\":\"...\",\"token\":\"...\"} 文本 (推荐云服务器使用)")
+    print("=" * 50)
+
+    raw = input("> ").strip()
+    if not raw:
+        return get_credentials_auto(headless=headless)
+
+    try:
+        data = json.loads(raw)
+        cookie = data["cookie"]
+        token = data["token"]
+        save_credentials(cookie, token)
+        return cookie, token
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"[✗] 凭证格式错误: {e}")
+        sys.exit(1)
+
+
 def crawl_account(cookie, token, nickname, settings, fakeid=None, max_articles=None, since_date=None):
     """
     抓取指定公众号的全部文章 URL
@@ -333,7 +356,7 @@ def main():
     else:
         cookie, token = load_credentials()
         if not cookie or not token:
-            cookie, token = get_credentials_auto(headless=args.headless)
+            cookie, token = get_credentials_smart(headless=args.headless)
 
     # 解析 since 日期
     since_date = None
