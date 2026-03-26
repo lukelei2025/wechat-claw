@@ -40,6 +40,9 @@ playwright install chromium
 # 本地运行（推荐）：按回车键，自动弹出浏览器扫码
 python crawler.py --nickname "目标公众号"
 
+# 仅获取最新的 10 篇文章
+python crawler.py --nickname "目标公众号" --max 10
+
 # 云服务器运行（受限说明：微信对云厂商 IP 节点及无头浏览器风控极严，极易被强制下线拦截！因此必须在本地电脑先人工获取凭证，再交给云端运行。）
 python crawler.py --nickname "目标公众号"
 
@@ -58,9 +61,11 @@ python crawler.py --credentials '{"cookie":"xxx","token":"xxx"}'
 
 凭证会自动保存在本地 `credentials.json`，下次运行在过期前无需重新扫码。
 
-### 5. 结果
+### 5. 自动产生全量结果
 
-文章列表保存在 `output/` 目录下，JSON 格式，包含每篇文章的标题、URL、摘要、封面、更新时间。
+程序现已实现全自动连贯执行：提取完文章基础列表后，**会自动无缝进入第二阶段**，全自动将列表里所有文章的纯文本详情（Content）逐个下载下来。
+
+最终同时带有链接和正文的获取结果会保存在 `output/` 目录下，文件名为 `xxx_full_时间戳.json`，其中包含了标题、URL、发布时间以及完整的正文全文内容。
 
 ## 项目结构
 
