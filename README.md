@@ -51,7 +51,7 @@ python crawler.py --credentials '{"cookie":"xxx","token":"xxx"}'
 ```
 
 **⚠️ 如何手动获取完整的 Cookie 和 Token？**
-*(注意：旧版的“书签一键提取代码”因浏览器安全限制，无法读取核心的 HttpOnly 登录凭证，现已废弃，必须使用以下开发者工具提取法)*
+*(提取完整的 HttpOnly 登录凭证，必须使用开发者工具手工提取)*
 1. 用电脑浏览器登录 [微信公众平台](https://mp.weixin.qq.com)。
 2. 按 `F12` 打开开发者工具，切到 **Network (网络)** 标签页。
 3. 刷新页面，随便点击左侧一个以 `cgi-bin/` 开头的网络请求（如 `home?t=...`）。

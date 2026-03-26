@@ -1,11 +1,10 @@
 # coding: utf-8
 """
-微信公众号文章爬虫
+微信公众号文章获取工具
 
 用法:
-  1. 浏览器登录 mp.weixin.qq.com，扫码后点击书签提取 cookie/token
-  2. 运行: python crawler.py --credentials '{"cookie":"xxx","token":"xxx"}'
-  3. 或者: python crawler.py  (交互式粘贴凭证)
+  1. 本地全自动: python crawler.py --nickname "目标公众号"
+  2. 云端手动: python crawler.py --credentials '{"cookie":"xxx","token":"xxx"}'
 """
 
 import json
